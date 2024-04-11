@@ -175,7 +175,13 @@ public class TCPServer {
 		try {
             inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             clientSentence = inFromClient.readLine();
-            Checkmes(clientSentence);
+			try{
+            			Checkmes(clientSentence);
+			}
+			catch(Exception e){
+				situation = "BYE";
+				e.printStackTrace();
+			}
             switch(situation){
                 case"HELO ":
                 	outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
