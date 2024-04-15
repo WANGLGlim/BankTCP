@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement; 
+import java.util.Date;
 
 public class TCPServer {
 	
@@ -28,6 +29,9 @@ public class TCPServer {
     Socket connectionSocket;
     BufferedReader inFromClient;
 	
+    FileWriter writer;
+    File file;
+    Date date=new Date();
 	public TCPServer(){
 		try {
 			ServerSocket welcomeSocket = new ServerSocket(2525);
@@ -173,19 +177,31 @@ public class TCPServer {
 	
 	public void Monitor(){
 		try {
-            inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+			file = new File("test.txt");
+			writer = new FileWriter(file,true);
+			inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             clientSentence = inFromClient.readLine();
-            Checkmes(clientSentence);
+            try {
+            	Checkmes(clientSentence);
+            }
+            catch (Exception e) {
+            	situation="BYE";
+            	e.printStackTrace();
+			}
             switch(situation){
                 case"HELO ":
                 	outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
                 	System.out.println(id+"Want to login");
                 	if(checkid(id)) {
                 		System.out.println(id+"存在");
+                		writer.write(id+"尝试登录并存在"+date.toString()+'\n');
+                		writer.close();
                 		retrunSentence="500 AUTH REQUIRE";
                 	}
                 	else {
                 		System.out.println(id+"不存在");
+                		writer.write(id+"尝试登录并且不存在"+date.toString()+'\n');
+                		writer.close();
                 		id="";
                 		retrunSentence="401 ERROR!";
                 	}
@@ -201,10 +217,14 @@ public class TCPServer {
                 	System.out.println(id+"Try to login");
                 	if(login(id,pass)) {
                 		System.out.println(id+"login successful");
+                		writer.write(id+"密码正确并登录"+date.toString()+'\n');
+                		writer.close();
                 		retrunSentence="525 OK!";
                 	}
                 	else {
                 		System.out.println(id+"login failed");
+                		writer.write(id+"密码错误登录未成功"+date.toString()+'\n');
+                		writer.close();
                 		retrunSentence="401 ERROR!";
                 		pass="";
                 	}
@@ -217,8 +237,10 @@ public class TCPServer {
                 		outToClient.writeBytes(retrunSentence+'\n');
                 		break;
                 	}
-                	retrunSentence="AMMT:<"+Bala(id)+">";
+                	retrunSentence="AMMT "+Bala(id);
                 	System.out.println(id+"check the bala");
+                	writer.write(id+"查询余额为"+Bala(id)+date.toString()+'\n');
+                	writer.close();
                 	outToClient.writeBytes(retrunSentence+'\n');
                     break;
                 case"WDRA ":
@@ -230,12 +252,16 @@ public class TCPServer {
                 	}
                 	if(Bala(id)<money) {
                 		System.out.println(id+"do not have enough money");
+                		writer.write(id+"尝试取款"+money+"但是余额不足"+date.toString()+'\n');
+                		writer.close();
                 		retrunSentence="401 ERROR!";
                 		money=0;
                 	}
                 	else {
                 		withdraw(id, money);
                 		System.out.println(id+"withdraw"+money+" $");
+                		writer.write(id+"尝试取款"+money+"余额充值"+date.toString()+'\n');
+                		writer.close();
                 		retrunSentence="525 OK!";
                 		money=0;
                 	}
@@ -243,6 +269,9 @@ public class TCPServer {
                     break;
                 case"BYE":
                 	outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
+                	System.out.println(id+"Say Goodbye");
+                	writer.write(id+"结束访问服务器"+date.toString()+'\n');
+                	writer.close();
                 	retrunSentence="BYE";
                 	outToClient.writeBytes(retrunSentence+'\n');
                     connectionSocket.close();
@@ -252,6 +281,8 @@ public class TCPServer {
                 	outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
                     System.out.println(clientSentence);
                     retrunSentence="401 ERROR!";
+                    writer.write(id+"发送了"+retrunSentence+date.toString()+'\n');
+                    writer.close();
                     outToClient.writeBytes(retrunSentence+'\n');
                     break;
             }
