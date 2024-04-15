@@ -11,3 +11,4 @@
 	想测试记得改dbc里面连接数据库的参数以及TCPServer中的数据库相关参数
 	如果卡了Address already in use: bind可以参考以下链接解决
 	“https://blog.csdn.net/qq_33546330/article/details/90605949”
+	更新了写日志功能，文件名是test.txt(会自己创建日志)
